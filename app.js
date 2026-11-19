@@ -1,4 +1,5 @@
 const STORAGE_KEY = "foodmind-state-v1";
+const AUTH_KEY = "foodmind-auth";
 const PHOTO_IMPORT_VERSION = 6;
 const WEEK_RECIPE_VERSION = 2;
 const CURRENT_USER = { name: "鲜小厨", avatar: "鲜" };
@@ -291,10 +292,43 @@ function offsetDate(days) {
 
 function demoFoodHubPosts() {
   return [
-    { id: "hub-demo-1", author: "小厨阿梨", avatar: "梨", recipeId: "r8", text: "第一次做可乐鸡翅，收汁后颜色太漂亮了！甜咸刚好，配米饭很合适。", at: `${offsetDate(-1)}T18:30:00`, likes: 24, liked: false, comments: [{ id: "hub-comment-1", author: "阿杰", text: "看着就很下饭！", at: `${offsetDate(-1)}T19:10:00` }] },
-    { id: "hub-demo-2", author: "阿杰的厨房", avatar: "杰", recipeId: "r57", text: "今晚的油焖大虾，虾壳煎香再调味，酱汁拌饭也很好吃。", at: `${offsetDate(-2)}T12:15:00`, likes: 18, liked: false, comments: [] },
-    { id: "hub-demo-3", author: "周末做饭呀", avatar: "周", recipeId: "r60", text: "西红柿炒蛋就是最安心的家常味道，留一点汤汁拌饭。", at: `${offsetDate(-3)}T18:00:00`, likes: 32, liked: false, comments: [{ id: "hub-comment-2", author: "小厨阿梨", text: "这道菜永远吃不腻！", at: `${offsetDate(-3)}T18:25:00` }] }
+    { id: "hub-demo-1", author: "小厨阿梨", avatar: "梨", recipeId: "r8", text: "第一次做可乐鸡翅，收汁后颜色太漂亮了！甜咸刚好，配米饭很合适。", at: `${offsetDate(-1)}T18:30:00`, likes: 24, liked: false, comments: [
+      { id: "hub-comment-1", author: "阿杰", text: "看着就很下饭！", at: `${offsetDate(-1)}T19:10:00` },
+      { id: "hub-comment-3", author: "周末做饭呀", text: "收汁的时候要不要一直翻动？下次也想试试。", at: `${offsetDate(-1)}T19:22:00` }
+    ] },
+    { id: "hub-demo-2", author: "阿杰的厨房", avatar: "杰", recipeId: "r57", text: "今晚的油焖大虾，虾壳煎香再调味，酱汁拌饭也很好吃。", at: `${offsetDate(-2)}T12:15:00`, likes: 18, liked: false, comments: [
+      { id: "hub-comment-4", author: "小厨阿梨", text: "这个色泽太诱人了，虾要先开背吗？", at: `${offsetDate(-2)}T12:36:00` },
+      { id: "hub-comment-5", author: "阿杰的厨房", text: "我开了背，更容易入味，也方便去虾线。", at: `${offsetDate(-2)}T12:43:00` }
+    ] },
+    { id: "hub-demo-3", author: "周末做饭呀", avatar: "周", recipeId: "r60", text: "西红柿炒蛋就是最安心的家常味道，留一点汤汁拌饭。", at: `${offsetDate(-3)}T18:00:00`, likes: 32, liked: false, comments: [
+      { id: "hub-comment-2", author: "小厨阿梨", text: "这道菜永远吃不腻！", at: `${offsetDate(-3)}T18:25:00` },
+      { id: "hub-comment-6", author: "阿杰", text: "我也喜欢汤汁多一点的版本。", at: `${offsetDate(-3)}T18:41:00` }
+    ] },
+    { id: "hub-demo-4", author: "青椒不挑食", avatar: "椒", recipeId: "r55", text: "小炒牛肉配洋葱和青椒，牛肉先腌一会儿，炒出来很嫩。今天的午饭就靠它了。", at: `${offsetDate(-4)}T12:05:00`, likes: 27, liked: false, comments: [
+      { id: "hub-comment-7", author: "周末做饭呀", text: "青椒和洋葱一起炒，颜色也好看！", at: `${offsetDate(-4)}T12:19:00` },
+      { id: "hub-comment-8", author: "青椒不挑食", text: "对，我最后才下青椒，吃起来还很脆。", at: `${offsetDate(-4)}T12:31:00` }
+    ] },
+    { id: "hub-demo-5", author: "清爽厨房", avatar: "清", recipeId: "r56", text: "清炒荷兰豆只放蒜和一点盐，炒熟后还保留清脆口感，晚餐配一道肉菜刚好。", at: `${offsetDate(-5)}T18:20:00`, likes: 15, liked: false, comments: [
+      { id: "hub-comment-9", author: "小厨阿梨", text: "荷兰豆一定要炒熟，蒜香版看着很清爽。", at: `${offsetDate(-5)}T18:46:00` },
+      { id: "hub-comment-10", author: "阿杰", text: "这盘配油焖大虾应该很合适。", at: `${offsetDate(-5)}T19:03:00` }
+    ] }
   ];
+}
+
+function ensureDemoFoodHubPosts(posts) {
+  const list = Array.isArray(posts) ? posts : [];
+  let changed = !Array.isArray(posts);
+  for (const demo of demoFoodHubPosts()) {
+    const existing = list.find(post => post?.id === demo.id);
+    if (!existing) { list.push(demo); changed = true; continue; }
+    if (!Array.isArray(existing.comments)) { existing.comments = []; changed = true; }
+    const commentIds = new Set(existing.comments.map(comment => comment.id));
+    for (const comment of demo.comments) if (!commentIds.has(comment.id)) {
+      existing.comments.push(comment);
+      changed = true;
+    }
+  }
+  return { posts: list, changed };
 }
 
 function initialState() {
@@ -350,7 +384,8 @@ function loadState() {
     } else loaded = initialState();
     loaded.selectedIds = [];
     if (!Array.isArray(loaded.familyActivity)) loaded.familyActivity = [];
-    if (!Array.isArray(loaded.foodHubPosts)) loaded.foodHubPosts = demoFoodHubPosts();
+    const demoPosts = ensureDemoFoodHubPosts(loaded.foodHubPosts);
+    loaded.foodHubPosts = demoPosts.posts;
     let renamedFoodHubAuthor = false;
     loaded.foodHubPosts.forEach(post => {
       if (post?.author === "林小满") { post.author = CURRENT_USER.name; post.avatar = CURRENT_USER.avatar; renamedFoodHubAuthor = true; }
@@ -358,7 +393,7 @@ function loadState() {
         if (comment?.author === "林小满") { comment.author = CURRENT_USER.name; renamedFoodHubAuthor = true; }
       });
     });
-    if (renamedFoodHubAuthor) localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
+    if (renamedFoodHubAuthor || demoPosts.changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
     if (loaded.photoImportVersion !== PHOTO_IMPORT_VERSION) {
       const previousVersion = Number(loaded.photoImportVersion) || 0;
       const newNames = previousVersion >= 3 ? [
@@ -386,9 +421,105 @@ function loadState() {
 
 let state = loadState();
 if (Array.isArray(state.generatedRecipes)) state.generatedRecipes.filter(recipe => recipe?.id && Array.isArray(recipe.ingredients) && Array.isArray(recipe.steps) && !recipes.some(item => item.id === recipe.id)).forEach(recipe => recipes.push(recipe));
-let ui = { category: "全部", storage: "全部", query: "", onlyExpiring: false, view: "grid", page: "pantry", favoriteTab: "saved", editingId: null, recognized: null, lastRecipeId: null, lastServings: 2, cookingRecipeId: null, aiRequestId: 0, aiUnavailable: false };
+let ui = { category: "全部", storage: "全部", query: "", onlyExpiring: false, view: "grid", page: "pantry", favoriteTab: "saved", editingId: null, recognized: null, lastRecipeId: null, lastServings: 2, cookingRecipeId: null };
 
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (authState.user) scheduleCloudSave();
+}
+
+let authState = { token: "", user: null };
+try { authState = JSON.parse(localStorage.getItem(AUTH_KEY) || "null") || authState; } catch { /* ignore */ }
+
+let cloudSaveTimer = null;
+function scheduleCloudSave() {
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(() => { void saveStateToCloud(); }, 800);
+}
+
+async function apiFetch(url, options = {}) {
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (authState.token) headers.Authorization = `Bearer ${authState.token}`;
+  let response;
+  try {
+    response = await fetch(url, { ...options, headers: { ...headers, ...(options.body instanceof FormData ? {} : {}) } });
+  } catch {
+    throw new Error("无法连接服务器，请确认后端已启动");
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    if (response.status === 401) handleSessionExpired();
+    throw new Error(data.error || `请求失败（${response.status}）`);
+  }
+  return data;
+}
+
+function setAuth(token, user) {
+  authState = { token, user };
+  localStorage.setItem(AUTH_KEY, JSON.stringify(authState));
+  updateAuthUI();
+}
+function clearAuth() {
+  authState = { token: "", user: null };
+  localStorage.removeItem(AUTH_KEY);
+  updateAuthUI();
+}
+function handleSessionExpired() {
+  clearAuth();
+  toast("登录已过期，请重新登录", "error");
+}
+
+function updateAuthUI() {
+  const button = $("#profileButton");
+  if (!button) return;
+  button.querySelector("strong").textContent = authState.user ? authState.user.username : "鲜小厨";
+  button.querySelector("small").textContent = authState.user ? "已同步至云端 ☁" : "未登录 · 仅本机保存";
+  const logoutBtn = $("#authLogout");
+  if (logoutBtn) logoutBtn.classList.toggle("hidden", !authState.user);
+  const badge = $("#syncBadge");
+  if (badge) badge.classList.toggle("hidden", !authState.user);
+}
+
+async function saveStateToCloud() {
+  if (!authState.token) return;
+  try {
+    await apiFetch("api/state", { method: "PUT", body: JSON.stringify({ state }) });
+    updateSyncBadge("已同步");
+  } catch (err) {
+    updateSyncBadge("同步失败", true);
+    console.warn("云端保存失败：", err.message);
+  }
+}
+
+async function pullStateFromCloud() {
+  if (!authState.token) return;
+  try {
+    const data = await apiFetch("api/state");
+    const cloud = data.state;
+    if (cloud && Array.isArray(cloud.ingredients)) {
+      state = { ...state, ...cloud, selectedIds: [] };
+      const demoPosts = ensureDemoFoodHubPosts(state.foodHubPosts);
+      state.foodHubPosts = demoPosts.posts;
+      if (demoPosts.changed) {
+        saveState();
+        updateSyncBadge("正在同步");
+      } else {
+        saveStateLocally();
+        updateSyncBadge("已同步");
+      }
+    }
+  } catch (err) {
+    updateSyncBadge("同步失败", true);
+    console.warn("云端读取失败：", err.message);
+  }
+}
+function saveStateLocally() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function updateSyncBadge(text, isError = false) {
+  const badge = $("#syncBadge");
+  if (!badge || !authState.user) return;
+  badge.textContent = text;
+  badge.className = `sync-badge ${isError ? "error" : ""}`;
+}
 function recordFamilyActivity(item, actor = "我") {
   state.familyActivity.unshift({ id: crypto.randomUUID(), actor, name: item.name, quantity: item.quantity, unit: item.unit, storage: item.storage, at: new Date().toISOString() });
   state.familyActivity = state.familyActivity.slice(0, 50);
@@ -481,7 +612,7 @@ function renderPantry() {
         ${foodArtwork(item.name, item.category, "food-artwork", item.image)}
       </div>
       <div class="ingredient-info"><h3>${safe(item.name)}</h3><p class="category">${safe(item.category)} · ${safe(item.storage)}保存</p>
-        <div class="ingredient-meta"><div><span>剩余数量</span><strong>${item.quantity} ${safe(item.unit)}</strong></div><div><span>到期日期</span><strong>${formatDate(item.expiryDate)}</strong></div><button class="card-more" data-more="${item.id}">···</button></div>
+        <div class="ingredient-meta"><div><span>剩余数量</span><strong>${item.quantity} ${safe(item.unit)}</strong></div><div><span>到期日期</span><strong>${formatDate(item.expiryDate)}</strong></div><button type="button" class="card-more" data-more="${item.id}" aria-label="${safe(item.name)}的更多操作" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>
       </div>
       <div class="ingredient-actions"><button data-edit="${item.id}">编辑信息</button><button data-delete="${item.id}">删除</button></div>
     </article>`;
@@ -846,32 +977,9 @@ function findBestRecipe(selectedItems, excludeId = null, allowNear = false) {
   return candidates.find(item => item.recipe.id !== excludeId) || candidates[0] || null;
 }
 
-async function tryAiRecipe(selected, request, requestId) {
-  if (ui.aiUnavailable || typeof fetch !== "function" || typeof location === "undefined" || location.protocol === "file:") return;
-  try {
-    const response = await fetch("api/recommend", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: selected.map(item => ({ name: canonicalIngredient(item.name), quantity: Number(item.quantity), unit: item.unit, category: item.category })), preferences: request }) });
-    if (response.status === 404 || response.status === 503) ui.aiUnavailable = true;
-    if (!response.ok) return;
-    const data = await response.json();
-    if (requestId !== ui.aiRequestId || selected.some(item => !state.selectedIds.includes(item.id))) return;
-    const result = data.recipe;
-    if (!result || !Array.isArray(result.ingredients) || !Array.isArray(result.steps)) return;
-    const recipe = { ...result, id: `ai:${crypto.randomUUID()}`, emoji: "🍳", difficulty: "简单", calories: null, isAi: true };
-    recipes.push(recipe);
-    rememberDynamicRecipe(recipe);
-    ui.lastRecipeId = recipe.id;
-    ui.lastServings = request.servings;
-    state.history = [recipe.id, ...state.history.filter(id => id !== recipe.id)].slice(0, 12);
-    saveState();
-    renderRecipeResult(recipe, selected);
-  } catch { /* The local matcher remains usable when the optional model endpoint is offline. */ }
-}
-
 function generateRecipe(another = false) {
   const selected = state.ingredients.filter(item => state.selectedIds.includes(item.id));
   if (!selected.length) return toast("请先选择至少一种食材", "error");
-  const requestId = ++ui.aiRequestId;
   $("#generationLoading").classList.add("hidden");
   const result = $("#recipeResult");
   const expired = selected.filter(item => freshness(item).days < 0);
@@ -882,7 +990,7 @@ function generateRecipe(another = false) {
     if (!best) {
       const request = cookRequest(selected);
       const timeText = request.maxTime >= 999 ? "不限时间" : `${request.maxTime} 分钟内`;
-      result.innerHTML = `<div class="result-empty"><h3>本地暂时没有符合条件的菜谱</h3><p>已按「${safe(request.names.join("、"))}」「${safe(timeText)}」及你的忌口和补充要求查找。可调整限制，或部署模型服务分析新的食材组合。</p></div>`;
+      result.innerHTML = `<div class="result-empty"><h3>暂时没有符合条件的菜谱</h3><p>已按「${safe(request.names.join("、"))}」「${safe(timeText)}」及你的忌口和补充要求查找。可以放宽时间、调整偏好，或换一组食材再试。</p></div>`;
     } else {
       ui.lastRecipeId = best.recipe.id;
       ui.lastServings = best.request.servings;
@@ -893,7 +1001,6 @@ function generateRecipe(another = false) {
   }
   result.classList.remove("hidden");
   result.scrollIntoView({ behavior: "smooth", block: "start" });
-  if (!expired.length) void tryAiRecipe(selected, cookRequest(selected), requestId);
 }
 
 function renderRecipeResult(recipe, selected, matchResult = null) {
@@ -1114,7 +1221,11 @@ function bindEvents() {
     const select = event.target.closest("[data-select]"); if (select) return toggleSelected(select.dataset.select);
     const removeSelected = event.target.closest("[data-remove-selected]"); if (removeSelected) return toggleSelected(removeSelected.dataset.removeSelected);
     const picker = event.target.closest("[data-picker]"); if (picker) return toggleSelected(picker.dataset.picker);
-    const more = event.target.closest("[data-more]"); if (more) return more.closest(".ingredient-card").classList.toggle("actions-open");
+    const more = event.target.closest("[data-more]"); if (more) {
+      const open = more.closest(".ingredient-card").classList.toggle("actions-open");
+      more.setAttribute("aria-expanded", String(open));
+      return;
+    }
     const edit = event.target.closest("[data-edit]"); if (edit) return openAdd(edit.dataset.edit);
     const del = event.target.closest("[data-delete]"); if (del && confirm("确定删除这份食材吗？")) { state.ingredients = state.ingredients.filter(x=>x.id!==del.dataset.delete); state.selectedIds = state.selectedIds.filter(x=>x!==del.dataset.delete); saveState(); renderPantry(); return toast("食材已删除"); }
     const alertCook = event.target.closest("[data-cook-alert]"); if (alertCook) { if (!state.selectedIds.includes(alertCook.dataset.cookAlert)) state.selectedIds.push(alertCook.dataset.cookAlert); saveState(); closeDrawer(); renderPicker(); return showPage("cook"); }
@@ -1178,13 +1289,69 @@ function bindEvents() {
   $$("[data-favorite-tab]").forEach(button => button.addEventListener("click", () => { ui.favoriteTab=button.dataset.favoriteTab; $$("[data-favorite-tab]").forEach(x=>x.classList.toggle("active",x===button)); renderFavorites(); }));
   $$(".close-recipe-modal").forEach(button => button.addEventListener("click", () => $("#recipeModalBackdrop").classList.remove("open")));
   $("#recipeModalBackdrop").addEventListener("click", e => { if(e.target===e.currentTarget)e.currentTarget.classList.remove("open"); });
-  document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k") { e.preventDefault(); showPage("pantry"); $("#searchInput").focus(); } if(e.key==="Escape"){ closeWeekRecipePopover(); closeFoodHubComposer(); closeAdd(); closeDrawer(); $("#recipeModalBackdrop").classList.remove("open"); $("#consumeModalBackdrop").classList.remove("open"); } });
+  document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k") { e.preventDefault(); showPage("pantry"); $("#searchInput").focus(); } if(e.key==="Escape"){ closeWeekRecipePopover(); closeFoodHubComposer(); closeAdd(); closeDrawer(); closeAuth(); $("#recipeModalBackdrop").classList.remove("open"); $("#consumeModalBackdrop").classList.remove("open"); } });
+
+  $("#profileButton").addEventListener("click", () => { if (authState.user) return; openAuth("login"); });
+  $("#authModeLogin").addEventListener("click", () => openAuth("login"));
+  $("#authModeRegister").addEventListener("click", () => openAuth("register"));
+  $("#authClose").addEventListener("click", closeAuth);
+  $("#authBackdrop").addEventListener("click", e => { if (e.target === e.currentTarget) closeAuth(); });
+  $("#authForm").addEventListener("submit", submitAuth);
+  $("#authLogout").addEventListener("click", doLogout);
+  $("#syncBadge").addEventListener("click", () => { if (authState.token) void saveStateToCloud().then(() => toast("已手动同步到云端")); });
+}
+
+function renderAll() {
+  renderCategories(); renderPantry(); renderWeek(); renderFavorites(); renderFoodHub();
+}
+
+function rerenderFromState() {
+  renderAll();
+  renderPicker();
+}
+
+function openAuth(mode = "login") {
+  ui.authMode = mode;
+  $("#authError").textContent = "";
+  $("#authModeLogin").classList.toggle("active", mode === "login");
+  $("#authModeRegister").classList.toggle("active", mode === "register");
+  $("#authSubmit").textContent = mode === "login" ? "登录并同步" : "注册并同步";
+  $("#authBackdrop").classList.add("open");
+  setTimeout(() => $("#authUsername").focus(), 50);
+}
+function closeAuth() { $("#authBackdrop").classList.remove("open"); }
+
+async function submitAuth(event) {
+  event.preventDefault();
+  const username = $("#authUsername").value.trim();
+  const password = $("#authPassword").value;
+  const mode = ui.authMode;
+  if (!username || !password) return;
+  const errorNode = $("#authError");
+  errorNode.textContent = "";
+  try {
+    const data = await apiFetch(`api/auth/${mode}`, { method: "POST", body: JSON.stringify({ username, password }) });
+    setAuth(data.token, data.user);
+    closeAuth();
+    await pullStateFromCloud();
+    rerenderFromState();
+    toast(mode === "login" ? "登录成功，已同步云端数据" : "注册成功，云端空间已创建");
+  } catch (err) {
+    errorNode.textContent = err.message;
+  }
+}
+
+function doLogout() {
+  clearAuth();
+  rerenderFromState();
+  toast("已退出登录，切换为本机模式");
 }
 
 function init() {
   const hour = new Date().getHours(); $("#dateGreeting").textContent = `${hour < 11 ? "早上" : hour < 14 ? "中午" : hour < 18 ? "下午" : "晚上"}好，${CURRENT_USER.name}`;
   $("#foodhubDish").innerHTML = recipes.filter(recipe => dishImages[recipe.id]).map(recipe => `<option value="${recipe.id}">${safe(recipe.name)}</option>`).join("");
-  renderCategories(); renderPantry(); renderWeek(); renderFavorites(); renderFoodHub(); bindEvents(); repairStoredPhotoClassification();
+  renderAll(); bindEvents(); repairStoredPhotoClassification(); updateAuthUI();
+  if (authState.token) void pullStateFromCloud().then(rerenderFromState);
 }
 
 init();

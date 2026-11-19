@@ -192,10 +192,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .ingredient-info { padding: 15px 15px 14px; }
 .ingredient-info h3 { margin: 0; font-size: 14px; }
 .ingredient-info .category { margin: 4px 0 13px; color: #89958f; font-size: 9px; }
-.ingredient-meta { display: flex; justify-content: space-between; align-items: end; }
+.ingredient-meta { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 27px; align-items: end; gap: 6px; }
+.ingredient-meta > div { min-width: 0; }
 .ingredient-meta div span { display: block; color: #9aa49f; font-size: 8px; }
-.ingredient-meta div strong { display: block; margin-top: 3px; font-size: 11px; }
-.card-more { width: 27px; height: 27px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: #819089; cursor: pointer; }
+.ingredient-meta div strong { display: block; margin-top: 3px; font-size: 11px; overflow-wrap: anywhere; }
+.card-more { width: 27px; height: 27px; padding: 0; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: #819089; cursor: pointer; }
+.card-more svg { width: 15px; height: 15px; fill: currentColor; }
+.card-more:hover, .card-more[aria-expanded="true"] { color: var(--green); border-color: #bdd9c9; background: #f1f8f1; }
+.card-more:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .ingredient-actions { padding: 0 15px; max-height: 0; opacity: 0; display: flex; gap: 6px; overflow: hidden; transition: .25s; }
 .ingredient-card.actions-open .ingredient-actions { padding-bottom: 14px; max-height: 45px; opacity: 1; }
 .ingredient-actions button { flex: 1; padding: 7px; border: 0; border-radius: 8px; background: #f2f5f1; cursor: pointer; font-size: 9px; }
@@ -560,3 +564,21 @@ select, input, textarea { color: var(--ink); }
   .section-toolbar p, #openFilter { display: none; }
   .picker-list, .shopping-list { grid-template-columns: 1fr; }
 }
+
+/* 云端同步与登录 */
+.logout-button { width: calc(100% - 24px); margin: 0 12px 10px; padding: 9px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--muted); font-size: 11px; cursor: pointer; }
+.logout-button:hover { color: var(--red); border-color: var(--red-soft); background: var(--red-soft); }
+.sync-badge { padding: 6px 12px; border: 1px solid #bcdcc9; border-radius: 9px; background: var(--green-soft); color: var(--green); font-size: 11px; font-weight: 600; cursor: pointer; }
+.sync-badge.error { border-color: #f2c7bd; background: var(--red-soft); color: var(--red); }
+.auth-modal { width: min(440px, calc(100vw - 32px)); }
+.auth-intro { margin: 14px 0 4px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+.auth-tabs { display: flex; gap: 8px; margin: 18px 0 16px; }
+.auth-tabs button { flex: 1; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
+.auth-tabs button.active { color: #fff; background: var(--green); border-color: var(--green); }
+.auth-modal form label { display: block; margin-bottom: 14px; }
+.auth-modal form label span { display: block; margin-bottom: 6px; font-size: 11px; font-weight: 600; }
+.auth-modal form input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); font-size: 13px; outline: 0; }
+.auth-modal form input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(30,107,81,.08); }
+.auth-error { min-height: 16px; margin: 0 0 8px; color: var(--red); font-size: 11px; }
+.auth-modal footer { display: flex; justify-content: flex-end; }
+.auth-modal footer .primary-button { min-width: 130px; }

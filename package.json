@@ -1,0 +1,19 @@
+{
+  "name": "fresh-cook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "鲜厨记 - 智能家庭食材管理与烹饪助手（前端 + Node 后端）",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node tests/cooking-match.test.js && node tests/server-api.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^18.0.10",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.24.6"
+  }
+}
