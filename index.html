@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="鲜厨记 - 智能家庭食材存储与烹饪助手">
+  <title>鲜厨记｜食材管理与智能烹饪</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <a class="brand" href="#" data-page="pantry" aria-label="鲜厨记首页">
+        <span class="brand-mark"><img src="logo.png" alt=""></span>
+        <span><strong>鲜厨记</strong><small>FRESH COOK</small></span>
+      </a>
+
+      <nav class="main-nav">
+        <button class="nav-item active" data-page="pantry"><span>▦</span>食材仓库</button>
+        <button class="nav-item" data-page="cook"><span>✦</span>COOK</button>
+        <button class="nav-item" data-page="week"><span>▤</span>一周食谱</button>
+        <button class="nav-item" data-page="favorites"><span>♡</span>我的菜谱</button>
+      </nav>
+
+      <div class="sidebar-card">
+        <span class="sidebar-card-icon">🌱</span>
+        <strong>本周少浪费一点</strong>
+        <p>优先吃掉临期食材，让每一份新鲜都不被辜负。</p>
+        <div class="mini-progress"><i style="width: 72%"></i></div>
+        <small>本周目标 72%</small>
+      </div>
+
+      <button class="profile-button" id="profileButton">
+        <span class="avatar">林</span>
+        <span><strong>林小满</strong><small>均衡饮食计划</small></span>
+        <b>···</b>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="打开导航">☰</button>
+        <div class="page-heading">
+          <p id="dateGreeting">早上好，林小满</p>
+          <h1 id="pageTitle">我的食材仓库</h1>
+        </div>
+        <div class="top-actions">
+          <label class="search-box" id="searchBox">
+            <span>⌕</span>
+            <input id="searchInput" type="search" placeholder="搜索食材..." autocomplete="off">
+            <kbd>⌘ K</kbd>
+          </label>
+          <button class="icon-button notification-button" id="notificationButton" aria-label="临期提醒">
+            ♧<i id="notificationCount">0</i>
+          </button>
+          <button class="primary-button" id="openAddModal"><span>＋</span> 添加食材</button>
+        </div>
+      </header>
+
+      <section class="page active" id="pantryPage">
+        <article class="smart-banner" id="smartBanner">
+          <div class="smart-orb">✦</div>
+          <div class="smart-copy">
+            <span class="eyebrow">今日搭配灵感</span>
+            <h2 id="suggestionTitle">买一份鸡胸肉，今晚就能做一锅暖暖的咖喱</h2>
+            <p id="suggestionText">搭配仓库中的土豆和胡萝卜，只需再买 1 种食材。</p>
+          </div>
+          <div class="suggestion-ingredients" id="suggestionIngredients"></div>
+          <div class="banner-actions">
+            <button class="ghost-button light" id="shuffleSuggestion">换一个</button>
+            <button class="white-button" id="viewSuggestion">查看做法 <span>→</span></button>
+          </div>
+        </article>
+
+        <div class="section-toolbar">
+          <div>
+            <h2>食材清单 <span id="itemTotal">0</span></h2>
+            <p>按存储位置查看家中的每一份新鲜</p>
+          </div>
+          <div class="view-actions">
+            <button class="filter-button" id="openFilter">☷ 筛选</button>
+            <div class="view-toggle" aria-label="视图切换">
+              <button class="active" data-view="grid">▦</button>
+              <button data-view="list">☰</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-row" id="categoryFilters"></div>
+
+        <div class="storage-tabs" id="storageTabs">
+          <button class="active" data-storage="全部"><span>◉</span> 全部食材 <b id="allCount">0</b></button>
+          <button data-storage="冷藏"><span>❄</span> 冷藏区 <b id="coldCount">0</b></button>
+          <button data-storage="冷冻"><span>◆</span> 冷冻区 <b id="frozenCount">0</b></button>
+          <button data-storage="常温"><span>⌂</span> 常温区 <b id="roomCount">0</b></button>
+        </div>
+
+        <div class="pantry-grid" id="pantryGrid"></div>
+        <div class="empty-state hidden" id="pantryEmpty">
+          <span>🧺</span><h3>这里还没有食材</h3><p>换个筛选条件，或者添加一份新食材吧。</p>
+          <button class="primary-button" data-open-add>添加食材</button>
+        </div>
+      </section>
+
+      <section class="page" id="cookPage">
+        <div class="cook-hero">
+          <div>
+            <span class="eyebrow green">COOK</span>
+            <h2>选好食材，剩下的交给我</h2>
+            <p>从仓库中选择食材，按现有库存、烹饪时间、口味和忌口匹配可执行的家常菜谱。</p>
+          </div>
+          <div class="cook-illustration"><span>🥘</span><i>✦</i><b>COOK</b></div>
+        </div>
+
+        <section class="recipe-search card-panel" aria-label="搜索菜谱做法">
+          <div class="panel-title"><div><h3>查找菜品做法</h3><p>输入菜名，查看食材和烹饪步骤</p></div></div>
+          <input id="recipeSearchInput" type="search" placeholder="例如：可乐鸡翅、鱼香肉丝" autocomplete="off" aria-label="搜索菜名">
+          <div class="recipe-search-results" id="recipeSearchResults"></div>
+          <div class="recipe-lookup-detail hidden" id="recipeLookupDetail"></div>
+        </section>
+
+        <div class="cook-layout">
+          <aside class="ingredient-picker card-panel">
+            <div class="panel-title"><div><h3>1. 选择食材</h3><p>已选 <b id="selectedCount">0</b> 种</p></div><button id="clearSelection">清空</button></div>
+            <div class="picker-search"><span>⌕</span><input id="pickerSearch" placeholder="搜索仓库食材"></div>
+            <div class="picker-list" id="pickerList"></div>
+          </aside>
+
+          <div class="recipe-builder card-panel">
+            <div class="panel-title"><div><h3>2. 告诉我你的想法</h3><p>选择偏好，也可以用一句话描述</p></div></div>
+            <div class="preference-grid">
+              <label><span>菜品类型</span><select id="mealType"><option>家常菜</option><option>主食</option><option>轻食</option><option>汤羹</option></select></label>
+              <label><span>口味偏好</span><select id="taste"><option>咸香</option><option>清淡</option><option>香辣</option><option>酸甜</option></select></label>
+              <label><span>烹饪时间</span><select id="cookTime"><option value="30">30 分钟内</option><option value="15">15 分钟内</option><option value="45">45 分钟内</option><option value="999">不限时间</option></select></label>
+              <label><span>用餐人数</span><select id="servings"><option>2 人</option><option>1 人</option><option>3 人</option><option>4 人</option></select></label>
+            </div>
+            <label class="idea-input"><span>补充要求</span><textarea id="customPrompt" rows="3" placeholder="例如：少油、适合晚餐，最好不要太辣……"></textarea></label>
+            <div class="selected-preview" id="selectedPreview"><p>从左侧选择至少一种食材</p></div>
+            <button class="generate-button" id="generateRecipe"><span>✦</span> 帮我想一道菜</button>
+          </div>
+        </div>
+
+        <div class="generation-loading hidden" id="generationLoading">
+          <div class="ai-loader"><i></i><i></i><i></i></div>
+          <h3>鲜厨记正在匹配菜谱...</h3>
+          <p id="loadingText">正在分析所选食材</p>
+        </div>
+        <div class="recipe-result hidden" id="recipeResult"></div>
+      </section>
+
+      <section class="page" id="weekPage">
+        <div class="week-hero">
+          <div><span class="eyebrow green">WEEKLY MENU</span><h2>这一周，好好吃饭</h2><p>周一到周日，每天安排早餐、午餐和晚餐；优先利用现有库存与临期食材。</p></div>
+          <button class="primary-button" id="generateWeek">✦ 重新生成本周食谱</button>
+        </div>
+        <div class="week-board">
+          <div class="week-days" id="weekDays"></div>
+          <div class="week-grid" id="weekGrid"></div>
+        </div>
+        <div class="week-recipe-popover hidden" id="weekRecipePopover" role="dialog" aria-label="本餐菜谱"></div>
+        <section class="shopping-card">
+          <div class="shopping-title"><div><span>🛒</span><div><h3>本周建议购买</h3><p>根据计划用量扣除仓库中现有的食材</p></div></div><div class="shopping-buttons"><button id="copyShopping">复制清单</button><button id="stockPurchased">已购入库</button></div></div>
+          <div class="shopping-list" id="shoppingList"></div>
+        </section>
+      </section>
+
+      <section class="page" id="favoritesPage">
+        <div class="favorites-hero">
+          <div><span class="eyebrow green">MY COOKBOOK</span><h2>我的菜谱</h2><p>查看收藏和最近做过的菜。</p></div>
+          <div class="favorite-stats"><span><b id="favoriteCount">0</b> 已收藏</span><span><b id="historyCount">0</b> 最近生成</span></div>
+        </div>
+        <div class="favorite-tabs"><button class="active" data-favorite-tab="saved">我的收藏</button><button data-favorite-tab="history">最近生成</button></div>
+        <div class="favorite-grid" id="favoriteGrid"></div>
+        <div class="empty-state hidden" id="favoriteEmpty"><span>♡</span><h3>还没有收藏菜谱</h3><p>去 COOK 生成一道喜欢的菜吧。</p><button class="primary-button" data-page-jump="cook">去生成菜谱</button></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="notification-drawer" id="notificationDrawer" aria-label="临期提醒">
+    <div class="drawer-header"><div><span class="eyebrow green">FRESHNESS ALERT</span><h2>新鲜度提醒</h2></div><button id="closeDrawer">×</button></div>
+    <div class="drawer-summary"><span>🍃</span><div><strong id="drawerSummaryTitle">今天没有食材过期</strong><p>建议优先安排临期食材</p></div></div>
+    <div class="alert-list" id="alertList"></div>
+  </aside>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <section class="modal" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+      <header><div><span class="eyebrow green">ADD INGREDIENT</span><h2 id="addModalTitle">添加新食材</h2></div><button class="close-modal" aria-label="关闭">×</button></header>
+      <div class="add-tabs"><button class="active" data-add-tab="manual">手动添加</button><button data-add-tab="photo">📷 照片导入</button></div>
+      <form id="ingredientForm">
+        <div class="add-panel active" data-add-panel="manual">
+          <div class="form-grid">
+            <label class="full"><span>食材名称 *</span><input id="ingredientName" placeholder="例如：西红柿"></label>
+            <label><span>食材分类</span><select id="ingredientCategory"></select></label>
+            <label><span>存储位置</span><select id="ingredientStorage"><option>冷藏</option><option>冷冻</option><option>常温</option></select></label>
+            <label><span>数量</span><input id="ingredientQuantity" type="number" min="0.1" step="0.1" value="1"></label>
+            <label><span>单位</span><select id="ingredientUnit"><option>个</option><option>袋</option><option>盒</option><option>瓶</option><option>罐</option><option>把</option><option>根</option><option>颗</option><option>片</option><option>g</option><option>kg</option></select></label>
+            <label><span>购买日期</span><input id="purchaseDate" type="date"></label>
+            <label><span>到期日期 *</span><input id="expiryDate" type="date"></label>
+            <label class="full"><span>备注</span><textarea id="ingredientNote" rows="2" placeholder="例如：已开封、适合做沙拉"></textarea></label>
+          </div>
+        </div>
+        <div class="add-panel" data-add-panel="photo">
+          <label class="upload-zone" id="uploadZone">
+            <input id="photoInput" type="file" accept="image/*">
+            <div id="uploadPlaceholder"><span>📷</span><h3>上传一张食材照片</h3><p>点击选择或将图片拖到这里</p><small>支持 JPG、PNG，建议图片主体清晰</small></div>
+            <img id="photoPreview" class="hidden" alt="食材预览">
+          </label>
+          <div class="recognition-box hidden" id="recognitionBox">
+            <div class="recognition-loading"><i></i><span>正在识别食材并分析保存方式...</span></div>
+            <div class="recognition-result hidden" id="recognitionResult"></div>
+          </div>
+          <div class="photo-confirm hidden" id="photoConfirm">
+            <p>照片分析建议 · 请核对名称、数量和到期日期后入库</p>
+            <div class="form-grid">
+              <label><span>食材名称 *</span><input id="photoName" placeholder="请输入实际食材名称"></label>
+              <label><span>分类</span><select id="photoCategory"></select></label>
+              <label><span>存储位置</span><select id="photoStorage"><option>冷藏</option><option>冷冻</option><option>常温</option></select></label>
+              <label><span>数量</span><input id="photoQuantity" type="number" min="0.1" step="0.1" value="1"></label>
+              <label><span>单位</span><select id="photoUnit"><option>个</option><option>袋</option><option>盒</option><option>瓶</option><option>罐</option><option>把</option><option>根</option><option>颗</option><option>片</option><option>g</option><option>kg</option></select></label>
+              <label><span>到期日期 *</span><input id="photoExpiryDate" type="date"></label>
+            </div>
+          </div>
+        </div>
+        <footer><button type="button" class="ghost-button close-modal">取消</button><button type="submit" class="primary-button" id="saveIngredient">确认入库</button></footer>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="recipeModalBackdrop">
+    <section class="modal recipe-modal" id="recipeModal" role="dialog" aria-modal="true">
+      <header><div><span class="eyebrow green">RECIPE DETAIL</span><h2 id="recipeModalTitle">菜谱详情</h2></div><button class="close-recipe-modal" aria-label="关闭">×</button></header>
+      <div id="recipeModalContent"></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="consumeModalBackdrop">
+    <section class="modal consume-modal" role="dialog" aria-modal="true" aria-labelledby="consumeTitle">
+      <header><div><span class="eyebrow green">COOKING COMPLETE</span><h2 id="consumeTitle">确认本次使用量</h2></div><button id="closeConsumeModal" aria-label="关闭">×</button></header>
+      <p class="consume-intro">核对实际用量后再更新库存。未使用的食材保持为 0。</p>
+      <form id="consumeForm"><div id="consumeRows"></div><footer><button type="button" class="ghost-button" id="cancelConsume">取消</button><button type="submit" class="primary-button">确认完成并扣减</button></footer></form>
+    </section>
+  </div>
+
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
