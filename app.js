@@ -1,6 +1,7 @@
 const STORAGE_KEY = "foodmind-state-v1";
 const PHOTO_IMPORT_VERSION = 6;
 const WEEK_RECIPE_VERSION = 2;
+const CURRENT_USER = { name: "鲜小厨", avatar: "鲜" };
 
 const photoExampleNames = ["生菜", "豆腐", "土豆", "紫洋葱", "虾仁", "猪排", "五花肉", "鸡胸肉", "排骨", "肥牛卷", "草莓", "面包", "猕猴桃", "樱桃", "蓝莓", "荔枝", "苹果", "柠檬", "李子", "西瓜", "桃子", "馒头", "挂面", "大米", "胡萝卜", "小米", "红豆", "绿豆", "黄豆", "花生", "蘑菇", "玉米", "茄子", "黄瓜", "西葫芦", "苦瓜", "长豆角", "荷兰豆", "牛肉", "鸡腿肉", "可乐", "鸡翅"];
 
@@ -288,6 +289,14 @@ function offsetDate(days) {
   return date.toISOString().slice(0, 10);
 }
 
+function demoFoodHubPosts() {
+  return [
+    { id: "hub-demo-1", author: "小厨阿梨", avatar: "梨", recipeId: "r8", text: "第一次做可乐鸡翅，收汁后颜色太漂亮了！甜咸刚好，配米饭很合适。", at: `${offsetDate(-1)}T18:30:00`, likes: 24, liked: false, comments: [{ id: "hub-comment-1", author: "阿杰", text: "看着就很下饭！", at: `${offsetDate(-1)}T19:10:00` }] },
+    { id: "hub-demo-2", author: "阿杰的厨房", avatar: "杰", recipeId: "r57", text: "今晚的油焖大虾，虾壳煎香再调味，酱汁拌饭也很好吃。", at: `${offsetDate(-2)}T12:15:00`, likes: 18, liked: false, comments: [] },
+    { id: "hub-demo-3", author: "周末做饭呀", avatar: "周", recipeId: "r60", text: "西红柿炒蛋就是最安心的家常味道，留一点汤汁拌饭。", at: `${offsetDate(-3)}T18:00:00`, likes: 32, liked: false, comments: [{ id: "hub-comment-2", author: "小厨阿梨", text: "这道菜永远吃不腻！", at: `${offsetDate(-3)}T18:25:00` }] }
+  ];
+}
+
 function initialState() {
   return {
     ingredients: [
@@ -300,7 +309,7 @@ function initialState() {
       { id: crypto.randomUUID(), name: "虾仁", category: "水产", storage: "冷冻", quantity: 300, unit: "g", purchaseDate: offsetDate(-8), expiryDate: offsetDate(20), note: "" },
       { id: crypto.randomUUID(), name: "面条", category: "主食", storage: "常温", quantity: 2, unit: "袋", purchaseDate: offsetDate(-10), expiryDate: offsetDate(80), note: "" }
     ],
-    selectedIds: [], favorites: ["r6"], history: [], generatedRecipes: [], weekPlan: [], weekStart: "", weekGeneration: 0, shoppingChecked: [], suggestionIndex: 0
+    selectedIds: [], favorites: ["r6"], history: [], generatedRecipes: [], familyActivity: [], foodHubPosts: demoFoodHubPosts(), weekPlan: [], weekStart: "", weekGeneration: 0, shoppingChecked: [], suggestionIndex: 0
   };
 }
 
@@ -340,6 +349,16 @@ function loadState() {
       loaded = { ...initialState(), ...saved };
     } else loaded = initialState();
     loaded.selectedIds = [];
+    if (!Array.isArray(loaded.familyActivity)) loaded.familyActivity = [];
+    if (!Array.isArray(loaded.foodHubPosts)) loaded.foodHubPosts = demoFoodHubPosts();
+    let renamedFoodHubAuthor = false;
+    loaded.foodHubPosts.forEach(post => {
+      if (post?.author === "林小满") { post.author = CURRENT_USER.name; post.avatar = CURRENT_USER.avatar; renamedFoodHubAuthor = true; }
+      if (Array.isArray(post?.comments)) post.comments.forEach(comment => {
+        if (comment?.author === "林小满") { comment.author = CURRENT_USER.name; renamedFoodHubAuthor = true; }
+      });
+    });
+    if (renamedFoodHubAuthor) localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
     if (loaded.photoImportVersion !== PHOTO_IMPORT_VERSION) {
       const previousVersion = Number(loaded.photoImportVersion) || 0;
       const newNames = previousVersion >= 3 ? [
@@ -370,6 +389,10 @@ if (Array.isArray(state.generatedRecipes)) state.generatedRecipes.filter(recipe 
 let ui = { category: "全部", storage: "全部", query: "", onlyExpiring: false, view: "grid", page: "pantry", favoriteTab: "saved", editingId: null, recognized: null, lastRecipeId: null, lastServings: 2, cookingRecipeId: null, aiRequestId: 0, aiUnavailable: false };
 
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function recordFamilyActivity(item, actor = "我") {
+  state.familyActivity.unshift({ id: crypto.randomUUID(), actor, name: item.name, quantity: item.quantity, unit: item.unit, storage: item.storage, at: new Date().toISOString() });
+  state.familyActivity = state.familyActivity.slice(0, 50);
+}
 function rememberDynamicRecipe(recipe) {
   if (!/^(ai:|combo:|solo:|milkshake:|fruitplatter:)/.test(recipe.id)) return;
   state.generatedRecipes = [recipe, ...(state.generatedRecipes || []).filter(item => item.id !== recipe.id)].slice(0, 40);
@@ -469,7 +492,18 @@ function renderPantry() {
   $("#coldCount").textContent = state.ingredients.filter(x => x.storage === "冷藏").length;
   $("#frozenCount").textContent = state.ingredients.filter(x => x.storage === "冷冻").length;
   $("#roomCount").textContent = state.ingredients.filter(x => x.storage === "常温").length;
-  renderAlerts(); renderSuggestion(); renderPicker();
+  renderFamilyActivity(); renderAlerts(); renderSuggestion(); renderPicker();
+}
+
+function renderFamilyActivity() {
+  const activity = state.familyActivity || [];
+  $("#familyActivityList").innerHTML = activity.length ? activity.map(entry => {
+    const actor = ["我", "家庭成员A", "家庭成员B"].includes(entry.actor) ? entry.actor : "家庭成员";
+    const actorLabel = actor.startsWith("家庭成员") && actor.length > 4 ? `家庭成员 ${actor.slice(-1)}` : actor;
+    const time = new Date(entry.at);
+    const timeLabel = Number.isNaN(time.getTime()) ? "" : time.toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    return `<div class="family-activity-item"><span class="family-activity-avatar">${actor === "我" ? "我" : actor.slice(-1)}</span><div><strong>${safe(actorLabel)}</strong> 添加了食材 <strong>${safe(entry.name)}</strong>，${safe(entry.quantity)}${safe(entry.unit)}到${safe(entry.storage)}区<small>${safe(timeLabel)}</small></div></div>`;
+  }).join("") : `<p class="family-activity-empty">还没有采购记录。添加食材时选“家庭成员 A / B”，这里就会显示谁买了什么。</p>`;
 }
 
 function recipeScore(recipe) {
@@ -547,8 +581,9 @@ function toggleSelected(id) {
 
 function showPage(page) {
   closeWeekRecipePopover();
+  closeFoodHubComposer();
   ui.page = page;
-  const titles = { pantry: "我的食材仓库", cook: "COOK", week: "一周食谱推荐", favorites: "我的菜谱" };
+  const titles = { pantry: "我的食材仓库", cook: "COOK", week: "一周食谱推荐", foodhub: "foodhub", favorites: "我的菜谱" };
   $$(".page").forEach(node => node.classList.remove("active"));
   $(`#${page}Page`).classList.add("active");
   $$(".nav-item").forEach(node => node.classList.toggle("active", node.dataset.page === page));
@@ -558,12 +593,14 @@ function showPage(page) {
   $(".sidebar").classList.remove("open");
   if (page === "week") renderWeek();
   if (page === "favorites") renderFavorites();
+  if (page === "foodhub") renderFoodHub();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function openAdd(editId = null) {
   ui.editingId = editId; ui.recognized = null; ui.photoRequestId = (ui.photoRequestId || 0) + 1;
   $("#ingredientForm").reset();
+  $("#ingredientActorField").classList.toggle("hidden", Boolean(editId));
   $("#purchaseDate").value = offsetDate(0); $("#expiryDate").value = offsetDate(7);
   $("#photoPreview").classList.add("hidden"); $("#uploadZone").classList.remove("has-preview"); $("#uploadPlaceholder").classList.remove("hidden"); $("#recognitionBox").classList.add("hidden"); $("#photoConfirm").classList.add("hidden");
   if (editId) {
@@ -741,10 +778,11 @@ function submitIngredient(event) {
     const meta = ingredientMeta[item.name];
     if (meta && (item.name === "橙子" || item.category === "其他" || item.category === ui.recognized.category && ui.recognized.name !== item.name)) item.category = meta.category;
   } else {
-    item = { id: ui.editingId || crypto.randomUUID(), name: $("#ingredientName").value.trim(), category: $("#ingredientCategory").value, storage: $("#ingredientStorage").value, quantity: Number($("#ingredientQuantity").value), unit: $("#ingredientUnit").value, purchaseDate: $("#purchaseDate").value, expiryDate: $("#expiryDate").value, note: $("#ingredientNote").value.trim() };
+    item = { id: ui.editingId || crypto.randomUUID(), name: $("#ingredientName").value.trim(), category: $("#ingredientCategory").value, storage: $("#ingredientStorage").value, quantity: Number($("#ingredientQuantity").value), unit: $("#ingredientUnit").value, purchaseDate: $("#purchaseDate").value, expiryDate: $("#expiryDate").value, note: $("#ingredientNote").value.trim(), addedBy: state.ingredients.find(x => x.id === ui.editingId)?.addedBy };
     if (!item.name || !item.expiryDate || !(item.quantity > 0)) return toast("请填写名称、数量和到期日期", "error");
   }
   const selectedNames = new Set(state.ingredients.filter(x => state.selectedIds.includes(x.id)).map(x => canonicalIngredient(x.name)));
+  if (!wasEditing) { item.addedBy = $("#ingredientActor").value; recordFamilyActivity(item, item.addedBy); }
   if (ui.editingId) state.ingredients = state.ingredients.map(x => x.id === ui.editingId ? item : x); else state.ingredients.unshift(item);
   state.ingredients = mergeSameNameIngredients(state.ingredients);
   state.selectedIds = state.ingredients.filter(x => selectedNames.has(canonicalIngredient(x.name))).map(x => x.id);
@@ -954,7 +992,8 @@ function openWeekRecipePopover(recipeId, anchor) {
 function stockPurchased() {
   const checked = $$(".shopping-item.checked"); if (!checked.length) return toast("先勾选已经购买的食材", "error");
   checked.forEach(node => { const name = node.dataset.shopping, quantity = Number(node.dataset.quantity), unit = node.dataset.unit, meta = metaFor(name);
-    state.ingredients.unshift({ id: crypto.randomUUID(), name, category: meta.category, storage: meta.storage, quantity, unit, purchaseDate: offsetDate(0), expiryDate: offsetDate(meta.life), note: "来自本周采购清单" });
+    const item = { id: crypto.randomUUID(), name, category: meta.category, storage: meta.storage, quantity, unit, purchaseDate: offsetDate(0), expiryDate: offsetDate(meta.life), note: "来自本周采购清单", addedBy: "我" };
+    state.ingredients.unshift(item); recordFamilyActivity(item);
   });
   state.shoppingChecked = []; saveState(); renderPantry(); renderWeek(); toast(`已将 ${checked.length} 种食材加入仓库`);
 }
@@ -972,6 +1011,63 @@ function renderFavorites() {
   $("#favoriteCount").textContent = state.favorites.length; $("#historyCount").textContent = state.history.length;
   $("#favoriteGrid").innerHTML = list.map(recipe => `<article class="recipe-card" data-cook-recipe="${recipe.id}" role="button" tabindex="0" aria-label="去 COOK 查看${safe(recipe.name)}的做法"><div class="recipe-cover">${recipeArtwork(recipe)}<button data-favorite-recipe="${recipe.id}">${state.favorites.includes(recipe.id) ? "♥" : "♡"}</button></div><div class="recipe-card-info"><h3>${safe(recipe.name)}</h3><p>${safe(recipe.desc.slice(0,34))}...</p><div class="recipe-card-meta"><span>◷ ${recipe.time} 分钟</span><span>${safe(recipe.difficulty)}</span>${recipe.calories ? `<span>${recipe.calories} kcal</span>` : ""}</div></div></article>`).join("");
   $("#favoriteEmpty").classList.toggle("hidden", list.length > 0);
+}
+
+function renderFoodHub() {
+  const posts = (state.foodHubPosts || []).filter(post => post && /^[\w-]+$/.test(post.id) && recipes.some(recipe => recipe.id === post.recipeId));
+  $("#foodhubPostCount").textContent = `${posts.length} 篇分享`;
+  $("#foodhubFeed").innerHTML = posts.map(post => {
+    const recipe = recipes.find(item => item.id === post.recipeId);
+    const comments = Array.isArray(post.comments) ? post.comments : [];
+    const date = new Date(post.at), time = Number.isNaN(date.getTime()) ? "" : date.toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const likes = Math.max(0, Number(post.likes) || 0);
+    return `<article class="foodhub-post">
+      <div class="foodhub-post-image">${recipeArtwork(recipe, "foodhub-dish-image")}</div>
+      <div class="foodhub-post-content">
+      <div class="foodhub-post-author"><span class="foodhub-avatar">${safe(post.avatar || "厨")}</span><div><strong>${safe(post.author)}</strong><small>${safe(time)} · 分享了 ${safe(recipe.name)}</small></div></div>
+      <div class="foodhub-post-body"><h3>${safe(recipe.name)}</h3><p>${safe(post.text)}</p></div>
+      <div class="foodhub-post-actions"><button type="button" data-hub-like="${post.id}" class="${post.liked ? "liked" : ""}" aria-pressed="${Boolean(post.liked)}">${post.liked ? "♥" : "♡"} 喜欢 ${likes}</button><span>♧ 评论 ${comments.length}</span></div>
+      <div class="foodhub-comments">${comments.map(comment => `<div class="foodhub-comment"><strong>${safe(comment.author)}</strong><span>${safe(comment.text)}</span></div>`).join("")}</div>
+      <form class="foodhub-comment-form" data-hub-comment-form="${post.id}"><input name="comment" maxlength="200" placeholder="说说你的想法..." aria-label="评论${safe(recipe.name)}" required><button type="submit">发送</button></form>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+function openFoodHubComposer() {
+  $("#foodhubComposerBackdrop").classList.remove("hidden");
+  $("#foodhubDish").focus();
+}
+
+function closeFoodHubComposer() {
+  $("#foodhubComposerBackdrop").classList.add("hidden");
+}
+
+function publishFoodHubPost(recipeId, text) {
+  if (!dishImages[recipeId] || !recipes.some(recipe => recipe.id === recipeId)) return false;
+  const content = String(text).trim();
+  if (!content || content.length > 300) return false;
+  state.foodHubPosts.unshift({ id: crypto.randomUUID(), author: CURRENT_USER.name, avatar: CURRENT_USER.avatar, recipeId, text: content, at: new Date().toISOString(), likes: 0, liked: false, comments: [] });
+  saveState(); renderFoodHub();
+  return true;
+}
+
+function commentFoodHubPost(postId, text) {
+  const post = state.foodHubPosts.find(item => item.id === postId);
+  const content = String(text).trim();
+  if (!post || !content || content.length > 200) return false;
+  if (!Array.isArray(post.comments)) post.comments = [];
+  post.comments.push({ id: crypto.randomUUID(), author: CURRENT_USER.name, text: content, at: new Date().toISOString() });
+  saveState(); renderFoodHub();
+  return true;
+}
+
+function toggleFoodHubLike(postId) {
+  const post = state.foodHubPosts.find(item => item.id === postId);
+  if (!post) return;
+  post.liked = !post.liked;
+  post.likes = Math.max(0, (Number(post.likes) || 0) + (post.liked ? 1 : -1));
+  saveState(); renderFoodHub();
 }
 
 function renderRecipeSearch() {
@@ -1023,6 +1119,7 @@ function bindEvents() {
     const del = event.target.closest("[data-delete]"); if (del && confirm("确定删除这份食材吗？")) { state.ingredients = state.ingredients.filter(x=>x.id!==del.dataset.delete); state.selectedIds = state.selectedIds.filter(x=>x!==del.dataset.delete); saveState(); renderPantry(); return toast("食材已删除"); }
     const alertCook = event.target.closest("[data-cook-alert]"); if (alertCook) { if (!state.selectedIds.includes(alertCook.dataset.cookAlert)) state.selectedIds.push(alertCook.dataset.cookAlert); saveState(); closeDrawer(); renderPicker(); return showPage("cook"); }
     const favorite = event.target.closest("[data-favorite-recipe]"); if (favorite) return toggleFavorite(favorite.dataset.favoriteRecipe);
+    const hubLike = event.target.closest("[data-hub-like]"); if (hubLike) return toggleFoodHubLike(hubLike.dataset.hubLike);
     const cookRecipe = event.target.closest("[data-cook-recipe]"); if (cookRecipe) return showCookRecipe(cookRecipe.dataset.cookRecipe);
     const openRecipe = event.target.closest("[data-open-recipe]"); if (openRecipe) return openRecipeModal(openRecipe.dataset.openRecipe);
     const complete = event.target.closest("[data-complete-recipe]"); if (complete) return completeRecipe(complete.dataset.completeRecipe);
@@ -1040,6 +1137,21 @@ function bindEvents() {
   $("#favoriteGrid").addEventListener("keydown", event => { if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-cook-recipe]")) { event.preventDefault(); showCookRecipe(event.target.dataset.cookRecipe); } });
   $("#openFilter").addEventListener("click", () => { ui.onlyExpiring = !ui.onlyExpiring; $("#openFilter").textContent = ui.onlyExpiring ? "✓ 仅看临期" : "☷ 筛选"; $("#openFilter").style.background = ui.onlyExpiring ? "var(--green-soft)" : "#fff"; renderPantry(); });
   $("#openAddModal").addEventListener("click", () => openAdd());
+  $("#openFoodhubComposer").addEventListener("click", openFoodHubComposer);
+  $("#closeFoodhubComposer").addEventListener("click", closeFoodHubComposer);
+  $("#foodhubComposerBackdrop").addEventListener("click", event => { if (event.target === event.currentTarget) closeFoodHubComposer(); });
+  $("#foodhubPostForm").addEventListener("submit", event => {
+    event.preventDefault();
+    if (!publishFoodHubPost($("#foodhubDish").value, $("#foodhubText").value)) return toast("请选择菜品并填写分享内容", "error");
+    event.currentTarget.reset(); closeFoodHubComposer(); toast("分享已发布到 FoodHub");
+  });
+  document.addEventListener("submit", event => {
+    const form = event.target.closest("[data-hub-comment-form]");
+    if (!form) return;
+    event.preventDefault();
+    if (!commentFoodHubPost(form.dataset.hubCommentForm, form.elements.comment.value)) toast("请输入 200 字以内的评论", "error");
+  });
+  $("#recordFamilyPurchase").addEventListener("click", () => openAdd());
   $$(".close-modal").forEach(button => button.addEventListener("click", closeAdd));
   $("#modalBackdrop").addEventListener("click", e => { if (e.target === e.currentTarget) closeAdd(); });
   $$("[data-add-tab]").forEach(button => button.addEventListener("click", () => switchAddTab(button.dataset.addTab)));
@@ -1066,12 +1178,13 @@ function bindEvents() {
   $$("[data-favorite-tab]").forEach(button => button.addEventListener("click", () => { ui.favoriteTab=button.dataset.favoriteTab; $$("[data-favorite-tab]").forEach(x=>x.classList.toggle("active",x===button)); renderFavorites(); }));
   $$(".close-recipe-modal").forEach(button => button.addEventListener("click", () => $("#recipeModalBackdrop").classList.remove("open")));
   $("#recipeModalBackdrop").addEventListener("click", e => { if(e.target===e.currentTarget)e.currentTarget.classList.remove("open"); });
-  document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k") { e.preventDefault(); showPage("pantry"); $("#searchInput").focus(); } if(e.key==="Escape"){ closeWeekRecipePopover(); closeAdd(); closeDrawer(); $("#recipeModalBackdrop").classList.remove("open"); $("#consumeModalBackdrop").classList.remove("open"); } });
+  document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k") { e.preventDefault(); showPage("pantry"); $("#searchInput").focus(); } if(e.key==="Escape"){ closeWeekRecipePopover(); closeFoodHubComposer(); closeAdd(); closeDrawer(); $("#recipeModalBackdrop").classList.remove("open"); $("#consumeModalBackdrop").classList.remove("open"); } });
 }
 
 function init() {
-  const hour = new Date().getHours(); $("#dateGreeting").textContent = `${hour < 11 ? "早上" : hour < 14 ? "中午" : hour < 18 ? "下午" : "晚上"}好，林小满`;
-  renderCategories(); renderPantry(); renderWeek(); renderFavorites(); bindEvents(); repairStoredPhotoClassification();
+  const hour = new Date().getHours(); $("#dateGreeting").textContent = `${hour < 11 ? "早上" : hour < 14 ? "中午" : hour < 18 ? "下午" : "晚上"}好，${CURRENT_USER.name}`;
+  $("#foodhubDish").innerHTML = recipes.filter(recipe => dishImages[recipe.id]).map(recipe => `<option value="${recipe.id}">${safe(recipe.name)}</option>`).join("");
+  renderCategories(); renderPantry(); renderWeek(); renderFavorites(); renderFoodHub(); bindEvents(); repairStoredPhotoClassification();
 }
 
 init();

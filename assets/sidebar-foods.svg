@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 155" role="img" aria-labelledby="title">
+  <title id="title">番茄、牛油果、牛奶、面包、青椒、柠檬和鸡蛋组成的食材静物</title>
+  <ellipse cx="121" cy="139" rx="108" ry="11" fill="#dce7d7" opacity=".7"/>
+  <!-- Bread -->
+  <path d="M17 112 12 64c-2-13 8-22 19-20 5-12 19-17 30-10 14-5 27 4 27 19l-3 57Z" fill="#d79a56" stroke="#6d6545" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M23 107 19 65c-1-10 6-16 15-14 5-10 17-14 26-8 12-4 21 3 21 15l-2 49Z" fill="#fae5ab" stroke="#fff7d5" stroke-width="2"/>
+  <path d="M33 62c3-4 8-6 12-5M56 53c4 0 8 2 10 5" fill="none" stroke="#e7c887" stroke-width="2" stroke-linecap="round"/>
+  <!-- Milk carton -->
+  <path d="M91 32 104 14h29l13 18v89H91Z" fill="#fffdf4" stroke="#587864" stroke-width="2.3" stroke-linejoin="round"/>
+  <path d="M91 32h55l-13-18h-29Z" fill="#d7eadd" stroke="#587864" stroke-width="2.3" stroke-linejoin="round"/>
+  <path d="m104 14 10 18v89" fill="none" stroke="#8eaf99" stroke-width="2"/>
+  <rect x="115" y="54" width="24" height="40" rx="5" fill="#d8e9dd"/>
+  <path d="M121 75c0-7 4-10 6-14 2 4 6 7 6 14a6 6 0 0 1-12 0Z" fill="#7ca88b"/>
+  <!-- Avocado -->
+  <path d="M50 75c-11-3-22 3-25 15-3 10-11 20-9 33 2 16 16 24 31 22 20-2 34-18 34-35 0-10-8-17-11-26-3-5-10-8-20-9Z" fill="#6b9d48" stroke="#416d43" stroke-width="2.5"/>
+  <path d="M52 84c-9-3-17 3-20 13-3 9-9 18-7 27 2 11 11 16 23 14 16-2 25-15 25-27 0-9-7-15-10-21-2-3-5-5-11-6Z" fill="#e5eab0"/>
+  <ellipse cx="48" cy="113" rx="13" ry="15" fill="#a36a3f" stroke="#6d5639" stroke-width="2"/>
+  <ellipse cx="44" cy="108" rx="4" ry="5" fill="#c18b58" opacity=".7"/>
+  <!-- Green pepper -->
+  <path d="M174 67c-12-5-24 0-28 12-6 19-3 42 11 46 6 2 10-3 15-2 5 2 8 7 14 4 15-7 24-31 19-47-3-10-14-16-26-13Z" fill="#4f9855" stroke="#357549" stroke-width="2.5"/>
+  <path d="M169 70c-8 14-12 31-8 45m24-45c8 12 10 29 4 47" fill="none" stroke="#7ab875" stroke-width="3" stroke-linecap="round"/>
+  <path d="M174 68c-1-9 3-15 9-19" fill="none" stroke="#357549" stroke-width="5" stroke-linecap="round"/>
+  <path d="M170 67c5 4 10 4 16 0" fill="none" stroke="#357549" stroke-width="3" stroke-linecap="round"/>
+  <!-- Tomato -->
+  <path d="M91 108c-10 1-18 9-19 19-1 12 8 21 23 22 15 1 27-5 29-17 2-13-9-23-22-24Z" fill="#e75b4c" stroke="#b94940" stroke-width="2.5"/>
+  <path d="m98 107-6-7 9 4 5-7 1 9 10 1-9 5-5 8-3-8-9-1Z" fill="#4c8950" stroke="#3d7547" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M82 126c1-6 4-9 8-11" fill="none" stroke="#f58d77" stroke-width="3" stroke-linecap="round"/>
+  <!-- Egg -->
+  <path d="M126 127c2-12 11-22 23-22 11 0 20 10 22 22 2 12-7 21-22 22-15 0-25-9-23-22Z" fill="#fff7e6" stroke="#b5aa8d" stroke-width="2.2"/>
+  <path d="M134 124c2-5 5-8 9-10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <!-- Lemon -->
+  <path d="M177 122c4-11 17-17 28-15 9 2 18 10 18 19-1 10-10 18-22 19-13 1-23-8-24-23Z" fill="#f3ca58" stroke="#bc9e43" stroke-width="2.3"/>
+  <path d="M184 122c3-7 11-11 18-10 7 1 14 7 14 14-1 7-7 13-15 13-9 0-16-7-17-17Z" fill="#fff4bd" stroke="#f8dd78" stroke-width="2"/>
+  <path d="m200 113 1 25m-16-17 31 7m-26-13 22 18" fill="none" stroke="#eac861" stroke-width="1.5"/>
+</svg>

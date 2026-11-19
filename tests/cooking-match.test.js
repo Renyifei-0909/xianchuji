@@ -6,7 +6,7 @@ const vm = require("node:vm");
 const controls = {
   "#mealType": { value: "家常菜" }, "#taste": { value: "清淡" },
   "#cookTime": { value: "30" }, "#servings": { value: "2 人" },
-  "#customPrompt": { value: "" }
+  "#customPrompt": { value: "" }, "#familyActivityList": { innerHTML: "" }
 };
 const storage = new Map();
 let nextId = 0;
@@ -14,10 +14,17 @@ const context = vm.createContext({
   console,
   crypto: { randomUUID: () => String(++nextId) },
   localStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value) },
-  document: { querySelector: selector => controls[selector] },
+  document: { querySelector: selector => controls[selector], createElement: () => ({
+    set textContent(value) { this._text = String(value); },
+    get innerHTML() { return this._text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  }) },
 });
 const source = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8").replace(/\ninit\(\);\s*$/, "");
 vm.runInContext(source, context);
+
+vm.runInContext('state.familyActivity = []; recordFamilyActivity({ name: "鸡蛋", quantity: 6, unit: "个", storage: "冷藏" }, "家庭成员A"); saveState(); renderFamilyActivity()', context);
+assert.match(controls["#familyActivityList"].innerHTML, /家庭成员 A.*鸡蛋.*6个到冷藏区/);
+assert.equal(JSON.parse([...storage.values()][0]).familyActivity[0].actor, "家庭成员A");
 
 const pepperPixels = new Uint8ClampedArray(100 * 100 * 4);
 for (let y = 0; y < 100; y++) for (let x = 0; x < 100; x++) {
@@ -200,4 +207,45 @@ vm.runInContext("moveMisidentifiedOrangePhoto(state.ingredients[0])", context);
 assert.equal(vm.runInContext("state.ingredients.find(item => item.name === '西红柿').image", context), undefined);
 assert.equal(vm.runInContext("state.ingredients.find(item => item.name === '橙子').category", context), "水果");
 assert.equal(vm.runInContext("preferredFoodImage('橙子')", context), "data:image/png;base64,AAAA");
+Object.assign(controls, {
+  "[data-add-tab='photo']": { classList: { contains: () => false } },
+  "#ingredientActor": { value: "家庭成员B" },
+  "#ingredientName": { value: "家庭测试食材" }, "#ingredientCategory": { value: "其他" },
+  "#ingredientStorage": { value: "常温" }, "#ingredientQuantity": { value: "2" },
+  "#ingredientUnit": { value: "袋" }, "#purchaseDate": { value: "2099-01-01" },
+  "#expiryDate": { value: "2099-01-05" }, "#ingredientNote": { value: "" }
+});
+vm.runInContext("renderCategories = () => {}; closeAdd = () => {}; toast = () => {}; ui.editingId = null; state.familyActivity = []; submitIngredient({ preventDefault() {} }); renderFamilyActivity()", context);
+assert.match(controls["#familyActivityList"].innerHTML, /家庭成员 B.*家庭测试食材.*2袋到常温区/);
+assert.equal(vm.runInContext("state.ingredients.find(item => item.name === '家庭测试食材').addedBy", context), "家庭成员B");
+controls["#foodhubPostCount"] = { textContent: "" };
+controls["#foodhubFeed"] = { innerHTML: "" };
+let composerOpen = false;
+controls["#foodhubComposerBackdrop"] = { classList: {
+  remove: name => { if (name === "hidden") composerOpen = true; },
+  add: name => { if (name === "hidden") composerOpen = false; }
+} };
+controls["#foodhubDish"] = { focus() {} };
+vm.runInContext("renderFoodHub()", context);
+assert.match(controls["#foodhubFeed"].innerHTML, /可乐鸡翅/);
+assert.match(controls["#foodhubFeed"].innerHTML, /foodhub-post-content/);
+assert.match(controls["#foodhubFeed"].innerHTML, /data-hub-comment-form="hub-demo-1"/);
+vm.runInContext("openFoodHubComposer()", context);
+assert.equal(composerOpen, true);
+vm.runInContext("closeFoodHubComposer()", context);
+assert.equal(composerOpen, false);
+assert.equal(vm.runInContext("commentFoodHubPost('hub-demo-1', '<script>alert(1)</script>')", context), true);
+assert.doesNotMatch(controls["#foodhubFeed"].innerHTML, /<script>/);
+assert.match(controls["#foodhubFeed"].innerHTML, /&lt;script&gt;/);
+vm.runInContext("toggleFoodHubLike('hub-demo-1')", context);
+assert.equal(vm.runInContext("state.foodHubPosts[0].likes", context), 25);
+assert.equal(vm.runInContext("publishFoodHubPost('r60', '我做的西红柿炒蛋')", context), true);
+assert.match(controls["#foodhubFeed"].innerHTML, /我做的西红柿炒蛋/);
+assert.equal(JSON.parse(storage.get("foodmind-state-v1")).foodHubPosts[0].author, "鲜小厨");
+storage.set("foodmind-state-v1", JSON.stringify({ ingredients: [], photoImportVersion: 6, foodHubPosts: [{ author: "林小满", avatar: "林", comments: [{ author: "林小满", text: "好吃" }] }] }));
+const renamedHubState = vm.runInContext("loadState()", context);
+assert.equal(renamedHubState.foodHubPosts[0].author, "鲜小厨");
+assert.equal(renamedHubState.foodHubPosts[0].avatar, "鲜");
+assert.equal(renamedHubState.foodHubPosts[0].comments[0].author, "鲜小厨");
+assert.equal(JSON.parse(storage.get("foodmind-state-v1")).foodHubPosts[0].author, "鲜小厨");
 console.log("Cooking matcher and weekly plan checks passed");

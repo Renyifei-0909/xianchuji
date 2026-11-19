@@ -23,20 +23,19 @@
         <button class="nav-item active" data-page="pantry"><span>▦</span>食材仓库</button>
         <button class="nav-item" data-page="cook"><span>✦</span>COOK</button>
         <button class="nav-item" data-page="week"><span>▤</span>一周食谱</button>
+        <button class="nav-item" data-page="foodhub"><span>◌</span>foodhub</button>
         <button class="nav-item" data-page="favorites"><span>♡</span>我的菜谱</button>
       </nav>
 
       <div class="sidebar-card">
-        <span class="sidebar-card-icon">🌱</span>
-        <strong>本周少浪费一点</strong>
-        <p>优先吃掉临期食材，让每一份新鲜都不被辜负。</p>
-        <div class="mini-progress"><i style="width: 72%"></i></div>
-        <small>本周目标 72%</small>
+        <img class="sidebar-food-illustration" src="assets/sidebar-foods.svg" alt="番茄、牛油果、牛奶、面包、青椒、柠檬和鸡蛋的插画">
+        <strong>新鲜食材，认真管理</strong>
+        <p>让每一份食物都不被遗忘</p>
       </div>
 
       <button class="profile-button" id="profileButton">
-        <span class="avatar">林</span>
-        <span><strong>林小满</strong><small>均衡饮食计划</small></span>
+        <span class="avatar">鲜</span>
+        <span><strong>鲜小厨</strong><small>均衡饮食计划</small></span>
         <b>···</b>
       </button>
     </aside>
@@ -45,7 +44,7 @@
       <header class="topbar">
         <button class="mobile-menu" id="mobileMenu" aria-label="打开导航">☰</button>
         <div class="page-heading">
-          <p id="dateGreeting">早上好，林小满</p>
+          <p id="dateGreeting">早上好，鲜小厨</p>
           <h1 id="pageTitle">我的食材仓库</h1>
         </div>
         <div class="top-actions">
@@ -75,6 +74,14 @@
             <button class="white-button" id="viewSuggestion">查看做法 <span>→</span></button>
           </div>
         </article>
+
+        <section class="family-activity" aria-labelledby="familyActivityTitle">
+          <div class="family-activity-heading">
+            <div><span class="eyebrow green">FAMILY PANTRY</span><h2 id="familyActivityTitle">家庭采购动态</h2><p>看看家里最近添了什么 · 目前仅本设备记录</p></div>
+            <button type="button" class="ghost-button" id="recordFamilyPurchase">记录采购 ＋</button>
+          </div>
+          <div class="family-activity-list" id="familyActivityList" aria-live="polite"></div>
+        </section>
 
         <div class="section-toolbar">
           <div>
@@ -168,6 +175,25 @@
         </section>
       </section>
 
+      <section class="page" id="foodhubPage">
+        <div class="foodhub-hero">
+          <div><span class="eyebrow green">FOODHUB</span><h2>把今天的好味道分享出来</h2><p>看看大家做了什么，聊聊做菜的小心得。</p></div>
+          <span class="foodhub-hero-icon" aria-hidden="true">🍽️</span>
+        </div>
+        <p class="foodhub-demo-note">这里展示示例帖子；发布、点赞和评论仅保存在当前浏览器。</p>
+        <div class="foodhub-feed-heading"><h3>美食动态</h3><span id="foodhubPostCount">0 篇分享</span></div>
+        <div class="foodhub-feed" id="foodhubFeed"></div>
+        <button class="foodhub-fab" id="openFoodhubComposer" type="button" aria-label="发布美食" title="发布美食">＋</button>
+        <div class="foodhub-compose-backdrop hidden" id="foodhubComposerBackdrop">
+          <form class="foodhub-composer" id="foodhubPostForm" role="dialog" aria-modal="true" aria-labelledby="foodhubComposerTitle">
+            <div class="foodhub-composer-head"><span class="foodhub-avatar mine">鲜</span><div><strong id="foodhubComposerTitle">分享我的美食</strong><small>选一道菜，写下今天的做菜心得</small></div><button class="foodhub-close" id="closeFoodhubComposer" type="button" aria-label="关闭发布窗口">×</button></div>
+            <label class="foodhub-field"><span>菜品照片</span><select id="foodhubDish" required></select></label>
+            <label class="foodhub-field"><span>分享内容</span><textarea id="foodhubText" rows="3" maxlength="300" placeholder="今天做了什么？味道怎么样？" required></textarea></label>
+            <div class="foodhub-composer-actions"><small>最多 300 字</small><button class="primary-button" type="submit">发布分享 →</button></div>
+          </form>
+        </div>
+      </section>
+
       <section class="page" id="favoritesPage">
         <div class="favorites-hero">
           <div><span class="eyebrow green">MY COOKBOOK</span><h2>我的菜谱</h2><p>查看收藏和最近做过的菜。</p></div>
@@ -192,6 +218,7 @@
       <header><div><span class="eyebrow green">ADD INGREDIENT</span><h2 id="addModalTitle">添加新食材</h2></div><button class="close-modal" aria-label="关闭">×</button></header>
       <div class="add-tabs"><button class="active" data-add-tab="manual">手动添加</button><button data-add-tab="photo">📷 照片导入</button></div>
       <form id="ingredientForm">
+        <label class="ingredient-actor" id="ingredientActorField"><span>谁买的</span><select id="ingredientActor"><option value="我">我</option><option value="家庭成员A">家庭成员 A</option><option value="家庭成员B">家庭成员 B</option></select></label>
         <div class="add-panel active" data-add-panel="manual">
           <div class="form-grid">
             <label class="full"><span>食材名称 *</span><input id="ingredientName" placeholder="例如：西红柿"></label>
